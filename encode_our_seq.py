@@ -26,8 +26,12 @@ print(seqs)
 # print(data)
 #encode_tensor_seqs = sequences_to_onehot(seqs)
 encode_tensor_seqs = sequences_to_onehot(data["seq"])
-data["encoded_seq"] = encode_tensor_seqs
-print(encode_tensor_seqs)
+print(encode_tensor_seqs.shape)
+encode_tensor_seqs.to_tensor()
+print(encode_tensor_seqs.to_tensor().shape)
+data["encoded_seq"] = encode_tensor_seqs.to_tensor()
+print(data["encoded_seq"].shape)
+# print(encode_tensor_seqs)
 with open("encode_tensor_seqs_test_data.pickle", 'wb') as f:
     pickle.dump(data, f)
 

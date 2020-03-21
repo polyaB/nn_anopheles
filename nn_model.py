@@ -39,13 +39,13 @@ def build_model(hparams):
 
       # Two convolution + maxpooling blocks
       layers.Conv1D(
-          filters=16,
-          kernel_size=5,
+          filters=1,
+          kernel_size=10,
           activation=tf.nn.relu,
           kernel_regularizer=l2_reg(hparams.l2)),
       layers.MaxPool1D(pool_size=3, strides=1),
       layers.Conv1D(
-          filters=16,
+          filters=1,
           kernel_size=3,
           activation=tf.nn.relu,
           kernel_regularizer=l2_reg(hparams.l2)),
@@ -69,3 +69,20 @@ def build_model(hparams):
       # Output layer with softmax activation
       layers.Dense(units=1, activation='softmax')
   ])
+
+def build_simple_model(hparams):
+    inputs = tf.keras.Input(shape=(10,4))
+    print(inputs)
+    x = tf.keras.layers.Dense(20, activation=tf.nn.relu)(inputs)
+    outputs = tf.keras.layers.Dense(1, activation=tf.nn.softmax)(x)
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    return model
+
+def build_simple_model2(hparams):
+    return tf.keras.models.Sequential([
+        layers.Flatten(input_shape=(10, 4)),
+        layers.Dense(units=128, activation=tf.nn.relu),
+        # layers.Flatten(),
+        # layers.Dense(20, activation=tf.nn.relu),
+        layers.Dense(units=1)
+    ])
