@@ -1,3 +1,6 @@
 [submodule "3Dpredictor"]
 	path = 3Dpredictor
 	url = https://github.com/labdevgen/3Dpredictor.git
+[submodule "basenji"]
+	path = basenji
+	url = https://github.com/calico/basenji.git
