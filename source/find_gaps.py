@@ -30,7 +30,9 @@ def merge_gaps(gaps, minimum_gap_between, min_gap_length, bed_file):
     data = pd.DataFrame({"chr":chr, "start":start, "end":end})
     return data
 # This function generate gaps bed file. Gaps are generated if there are a lot of zeroes in matrix column.
-# zero_proc_in_line is procent of zeroes in matrix column
+# zero_proc_in_line is percent of zeroes in column of hi-c matrix
+# bins_min_gap_between is minimum gap in bins between
+# bins_min_gap is a minimum gap in bins between non gap regions
 def generate_gaps(chr_list, cool_file, output_gap_folder, zero_proc_in_line=97, bins_min_gap_between=3, bins_min_gap=3):
     output_gap_file = output_gap_folder+"gaps+chr"+str(chr_list)+"_proc"+str(zero_proc_in_line)+".bed"
     if os.path.exists(output_gap_file):

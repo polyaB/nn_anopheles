@@ -1,11 +1,15 @@
 import json
 import sys
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # or any {'0', '1', '2'}
+print("import tf")
 import tensorflow as tf
+print("import pickle")
 import pickle
 import numpy as np
 import logging
 from termcolor import colored, cprint
+print("add source paths")
 logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', datefmt='%I:%M:%S', level=logging.INFO)
 source_path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../3Dpredictor/source"
 source_path2 = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../3Dpredictor/nn/source"
@@ -13,6 +17,7 @@ source_path3 = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../"
 sys.path.append(source_path)
 sys.path.append(source_path2)
 sys.path.append(source_path3)
+print("import other libraries")
 from basenji.basenji import seqnn
 from basenji.basenji import metrics
 from draw_hic_map import from_upper_triu
@@ -20,37 +25,39 @@ import matplotlib.pyplot as plt
 
 
 
-out_dir = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/output/test_model/"
+out_dir = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/output/"
+out_dir_callback = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/output/test_model/"
 # pickle_train = "test_train_dataset_25.05.pickle"
 # pickle_train = "train_X_15.07"
 # pickle_test = "test_X_15.07"
 pickle_train = "train_dataset_14.07.pickle"
+pickle_test =  "test_dataset_['3L'].pickle"
 
-logging.info(colored("Going to pickle load train dataset for " + pickle_train, 'green'))
-with open("/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/output/"+pickle_train, 'rb') as f:
+logging.info(colored("Pickle load train dataset: " + pickle_train, 'green'))
+with open(out_dir+pickle_train, 'rb') as f:
     data_train = pickle.load(f)
-
-# with open("/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/output/"+pickle_test, 'rb') as f:
+logging.info(colored("Pickle load test dataset: " + pickle_test, 'green'))
+with open(out_dir+pickle_train, 'rb') as f:
+    data_test = pickle.load(f)
+# with open("/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/output/"+pickle_test, 'rb') as f:
 #     data_test = pickle.load(f)
-logging.info(colored("Loaded ", 'green'))
+# logging.info(colored("success ", 'green'))
 params_file = "params.json"
 
 print("------------------------------------------------------")
 print()
-inputs = tf.convert_to_tensor(data_train["inputs"][5:])
+inputs = tf.convert_to_tensor(data_train["inputs"])
 # inputs = tf.expand_dims(inputs, -1)
 print("inputs shape", inputs.shape)
-print(inputs)
-targets =  tf.convert_to_tensor(data_train["targets"][5:])
+# print(inputs)
+targets =  tf.convert_to_tensor(data_train["targets"])
 targets = tf.expand_dims(targets, -1)
 print("targets shape", targets.shape)
-test_inputs = tf.convert_to_tensor(data_train["inputs"][0:5])
+test_inputs = tf.convert_to_tensor(data_test["inputs"][0:5])
 print("test inputs shape", test_inputs.shape)
-test_targets = data_train["targets"][0:5]
+test_targets = data_test["targets"][0:5]
 test_targets = tf.expand_dims(test_targets, -1)
 print("test targets shape", test_targets.shape)
-
-
 
 # read model parameters
 with open(params_file) as params_open:
@@ -90,20 +97,24 @@ tf.config.experimental.list_physical_devices('GPU')
 callbacks = [
       tf.keras.callbacks.EarlyStopping(monitor='val_pearsonr', mode='max', verbose=1,
                        patience=20),
-      tf.keras.callbacks.TensorBoard(out_dir),
-      tf.keras.callbacks.ModelCheckpoint('%s/model_check.h5'%out_dir),
-      tf.keras.callbacks.ModelCheckpoint('%s/model_best.h5'%out_dir, save_best_only=True,
+      tf.keras.callbacks.TensorBoard(out_dir_callback),
+      tf.keras.callbacks.ModelCheckpoint('%s/model_check.h5'%out_dir_callback),
+      tf.keras.callbacks.ModelCheckpoint('%s/model_best.h5'%out_dir_callback, save_best_only=True,
                                          monitor='val_pearsonr', mode='max', verbose=1)]
 
 seqnn_model.model.fit(x = inputs,
                       y = targets,
-                      epochs=20,
+                      epochs=5,
                     # steps_per_epoch=steps_per_epoch,
                       batch_size=batch_size,
                     callbacks=callbacks,
                     # validation_data=self.eval_data[0].dataset,
                     # validation_steps=self.eval_epoch_batches[0],
-                    use_multiprocessing=True)
+                    # use_multiprocessing=True)
+                      )
+
+#save model weights
+# seqnn_model.save(out_dir+"/trained_model/"+pickle_train+".weights")
 #check prediction and plot matrix
 test_index = 0
 # test_target = test_targets[test_index:test_index+1,:,:]
@@ -111,8 +122,8 @@ test_index = 0
 # print(test_target)
 # test_pred = seqnn_model.model.predict(test_inputs[test_index:test_index+1,:,:])
 test_pred = seqnn_model.model.predict(test_inputs)
-with open("/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/output/pred_15.07", 'wb') as f:
-    pickle.dump(test_pred, f)
+# with open("/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/output/pred_15.07", 'wb') as f:
+#     pickle.dump(test_pred, f)
 # print("test_predict")
 # print(test_pred)
 target_crop = params_model['target_crop']
@@ -123,15 +134,15 @@ tlen = (target_length_cropped - hic_diags) * (target_length_cropped - hic_diags 
 
 plt.subplot(121)
 mat = from_upper_triu(test_pred[:,:,0][test_index], target_length_cropped, hic_diags)
-im = plt.matshow(mat, fignum=False, cmap='RdBu_r', vmax=2, vmin=-2)
-plt.colorbar(im, fraction=.04, pad=0.05, ticks=[-2, -1, 0, 1, 2])
+im = plt.matshow(mat, fignum=False, cmap='RdBu_r')#, vmax=2, vmin=-2)
+plt.colorbar(im, fraction=.04, pad=0.05)#, ticks=[-2, -1, 0, 1, 2])
 plt.title('pred-'+str(data_train["intervals"][test_index]),y=1.15 )
 plt.ylabel(str(data_train["intervals"][test_index]))
 
 plt.subplot(122)
 mat = from_upper_triu(test_targets[:,:,0][test_index], target_length_cropped, hic_diags)
-im = plt.matshow(mat, fignum=False, cmap='RdBu_r', vmax=2, vmin=-2)
-plt.colorbar(im, fraction=.04, pad=0.05, ticks=[-2, -1, 0, 1, 2])
+im = plt.matshow(mat, fignum=False, cmap='RdBu_r')#, vmax=2, vmin=-2)
+plt.colorbar(im, fraction=.04, pad=0.05)#, ticks=[-2, -1, 0, 1, 2])
 plt.title('real-'+str(data_train["intervals"][test_index]),y=1.15 )
 plt.ylabel(str(data_train["intervals"][test_index]))
 plt.show()

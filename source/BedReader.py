@@ -1,7 +1,6 @@
 import logging,os, sys
 source_path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../3Dpredictor/source"
 source_path2 = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../3Dpredictor/nn/source"
-print(source_path2)
 sys.path.append(source_path)
 sys.path.append(source_path2)
 import pandas as pd

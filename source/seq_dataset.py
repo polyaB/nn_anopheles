@@ -1,5 +1,6 @@
 import sys
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' # or any {'0', '1', '2'}
 import tensorflow as tf
 import random
 source_path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../3Dpredictor/source"
@@ -107,18 +108,21 @@ def bed_seq_data(gap_chr_data, chr_size_file, out_bed_folder, seq_len=524288, sh
     # ids_test = random.sample(range(0,len(data)), len(data)*20//100)
     # data.iloc[ids_test, data.columns.get_loc("label")] = "test"
 
-def encode_seq():
-    seq = genome.get_interval(Interval(chr, start, start + seq_len))
-    gc = GC_content(seq)
-    encoded_seq = tf.constant(tf.one_hot(seq, depth=4))
+# def encode_seq():
+#     seq = genome.get_interval(Interval(chr, start, start + seq_len))
+#     gc = GC_content(seq)
+#     encoded_seq = tf.constant(tf.one_hot(seq, depth=4))
 
 def generate_train_dataset(seq_chr_data, fasta_genome, chr_norm_hic_data, out_file, train_test = "train", chrms = "all",
                            target_crop_bp=0, diagonal_offset=2):
     intervals, inputs, targets = [], [], []
+    print("train_test", train_test)
     for chr in seq_chr_data.keys():
+        print(chr)
         if chrms == "all" or chr in chrms:
             data = seq_chr_data[chr]
             seq_chr_data[chr] = seq_chr_data[chr][seq_chr_data[chr]["train_test"] == train_test]
+            print(seq_chr_data[chr])
             for seq in list(zip(seq_chr_data[chr]["start"], seq_chr_data[chr]["end"])):
                 seq_region = fasta_genome.get_interval(Interval(chr, seq[0], seq[1]))
                 # print("seq_region")
@@ -137,8 +141,6 @@ def generate_train_dataset(seq_chr_data, fasta_genome, chr_norm_hic_data, out_fi
                     crop_end = seq_len_pool - crop_start
                     seq_len_crop = seq_len_pool - 2 * crop_start
 
-
-
                 # unroll upper triangular
                 target = chr_norm_hic_data[chr][seq[0]//binsize:seq[1]//binsize, seq[0]//binsize:seq[1]//binsize]
                 assert target.shape[0] == target.shape[1]
@@ -152,6 +154,7 @@ def generate_train_dataset(seq_chr_data, fasta_genome, chr_norm_hic_data, out_fi
                 # print(target.shape)
 
     data = dict()
+    print(len(intervals), len(inputs), len(targets))
     data["intervals"] = intervals
     data["inputs"] = inputs
     data["targets"] = targets

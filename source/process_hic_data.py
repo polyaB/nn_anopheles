@@ -21,8 +21,8 @@ from termcolor import colored
 import pandas as pd
 from shared import FileReader
 from termcolor import colored
-fname = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/input/hi-c_data/AAcol/Acol_5Kb.cool"
-picture_dir =  "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/input/hi-c_data/pictures/"
+fname = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/input/hi-c_data/AAcol/Acol_5Kb.cool"
+picture_dir =  "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/input/hi-c_data/pictures/"
 chrs = ["X", "2R", "2L", "3R", "3L"]
 # sample region of about 6000x6000
 def get_norm_matrix_for_region(chr, genome_cool, gap_chr_data, diagonal_offset=2, log=True, kernel_stddev = 0, clip=None, chr_region=None, obs_exp=True, **kwargs):
@@ -71,7 +71,7 @@ def get_norm_matrix_for_region(chr, genome_cool, gap_chr_data, diagonal_offset=2
     # print(hic_mat)
     plt.imshow(np.log(hic_mat), cmap="RdBu_r")
     plt.colorbar()
-    plt.savefig(os.path.join(picture_dir, "Acol_2L_clipdiags_mat.png"))
+    plt.savefig(os.path.join(picture_dir, "Acol_"+str(chr)+"_clipdiags_mat.png"))
     plt.clf()
 
     #adaptively coarse-grain
@@ -79,7 +79,7 @@ def get_norm_matrix_for_region(chr, genome_cool, gap_chr_data, diagonal_offset=2
     mat_cg = adaptive_coarsegrain(hic_mat, hic_mat_raw)
     plt.imshow(np.log(mat_cg), cmap="RdBu_r")
     plt.colorbar()
-    plt.savefig(os.path.join(picture_dir, "Acol_"+str(chr)+"2L_coarsegrained_mat.png"))
+    plt.savefig(os.path.join(picture_dir, "Acol_"+str(chr)+"_coarsegrained_mat.png"))
     plt.clf()
     print(colored("coarse-grained mat", 'blue'))
     print(mat_cg)
@@ -93,7 +93,7 @@ def get_norm_matrix_for_region(chr, genome_cool, gap_chr_data, diagonal_offset=2
     print(seq_hic_obsexp)
     plt.imshow(np.log(seq_hic_obsexp), cmap="RdBu_r")
     plt.colorbar()
-    plt.savefig(os.path.join(picture_dir, "Acol_2L_oe_mat.png"))
+    plt.savefig(os.path.join(picture_dir, "Acol_"+chr+"_oe_mat.png"))
     plt.clf()
     #log and clip values in range interval
     logging.info("log and clip values in range interval, linearly interpolate")
@@ -112,7 +112,7 @@ def get_norm_matrix_for_region(chr, genome_cool, gap_chr_data, diagonal_offset=2
     print(interp_seq_hic_obsexp)
     plt.imshow(interp_seq_hic_obsexp, cmap="RdBu_r")
     plt.colorbar()
-    plt.savefig(os.path.join(picture_dir, "Acol_2L_log_oe_interp_mat.png"))
+    plt.savefig(os.path.join(picture_dir, "Acol_"+chr+"_log_oe_interp_mat.png"))
     plt.clf()
 
     if kernel_stddev > 0:
@@ -130,7 +130,7 @@ def get_norm_matrix_for_region(chr, genome_cool, gap_chr_data, diagonal_offset=2
     # print(hic_mat)
     plt.imshow(seq_hic, cmap="RdBu_r")
     plt.colorbar()
-    plt.savefig(os.path.join(picture_dir, "Acol_chr2L_"+chr+".png"))
+    plt.savefig(os.path.join(picture_dir, "Acol_"+chr+".png"))
     plt.clf()
     return seq_hic
 

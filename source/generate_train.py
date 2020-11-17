@@ -12,16 +12,17 @@ source_path2 = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../3Dpredictor/
 sys.path.append(source_path)
 sys.path.append(source_path2)
 from fastaFileReader import fastaReader
-cool_file = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/input/hi-c_data/AAcol/Acol_4096bp.cool"
-chr_size_file = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/input/genomes/AcolNg_modified.chr.sizes"
-output_gap_folder = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/input/gaps_files/"
-out_train_test_folder = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/input/train/"
-fasta_file = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/input/genomes/AcolNg_V4.fa"
-out_norm_hic_dump_file = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/input/hi-c_data/AAcol/norm_hic_data_all_chrs_contacts"
-out_train_pickle = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/output/train_dataset_09.06.pickle"
-out_test_pickle = "/mnt/scratch/ws/psbelokopytova/202008151203data_Polya/nn_anopheles/output/test_dataset_09.06.pickle"
+
+out_folder = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/"
+cool_file = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/input/hi-c_data/AAcol/Acol_4096bp.cool"
+chr_size_file = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/input/genomes/AcolNg_modified.chr.sizes"
+output_gap_folder = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/input/gaps_files/"
+out_train_test_folder = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/input/train/"
+fasta_file = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/input/genomes/AcolNg_V4.fa"
+out_norm_hic_dump_file = "/mnt/scratch/ws/psbelokopytova/202011291709Polya_data/nn_anopheles/input/hi-c_data/AAcol/norm_hic_data_all_chrs_contacts"
+
 chr_list=["2L", "2R", "3L", "3R", "X"]
-chr_list = ["3L"]
+# chr_list = ["3L"]
 
 #get gaps
 logging.info(colored("Going to find gaps in " + cool_file, 'green'))
@@ -36,8 +37,10 @@ seq_chr_data = bed_seq_data(gap_chr_data=gaps_chr_data, chr_size_file=chr_size_f
 
 #get normalized hi-c matrix
 logging.info(colored("going to normalize hi-c data", 'green'))
-chr_norm_hic_data = normalize_hic_map(cool_file=cool_file, chrs=chr_list, gap_chr_data=gaps_chr_data, out_dump_file=out_norm_hic_dump_file, obs_exp=False)
+chr_norm_hic_data = normalize_hic_map(cool_file=cool_file, chrs=chr_list, gap_chr_data=gaps_chr_data,
+                                      out_dump_file=out_folder+"input/hi-c_data/AAcol/norm_hic_data_"+str(chr_list)+".pickle", obs_exp=False)
 logging.info(colored("succesfully normalize hi-c data", 'green'))
+# exit()
 # print(chr_norm_hic_data["X"])
 # print(chr_norm_hic_data["X"].shape)
 # print("nonzeroes",np.count_nonzero(chr_norm_hic_data["X"]))
@@ -49,7 +52,7 @@ logging.info(colored("succesfully normalize hi-c data", 'green'))
 logging.info(colored("going to generate encoded sequences and targets dataset", 'green'))
 genome = fastaReader(fasta_file, name="ACol")
 genome = genome.read_data()
-generate_train_dataset(seq_chr_data, genome, chr_norm_hic_data, chrms=set(chr_list), out_file=out_train_pickle, train_test="train", target_crop_bp=0)
-generate_train_dataset(seq_chr_data, genome, chr_norm_hic_data, chrms=set(chr_list), out_file=out_test_pickle, train_test="test", target_crop_bp=0)
+generate_train_dataset(seq_chr_data, genome, chr_norm_hic_data, chrms=set(chr_list), out_file=out_folder+"output/train_dataset_"+str(chr_list)+".pickle", train_test="train", target_crop_bp=0)
+# generate_train_dataset(seq_chr_data, genome, chr_norm_hic_data, chrms=set(chr_list), out_file=out_folder+"output/test_dataset_"+str(chr_list)+".pickle", train_test="test", target_crop_bp=0)
 
 
