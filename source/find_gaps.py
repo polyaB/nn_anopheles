@@ -4,6 +4,7 @@ import cooler
 import os
 import logging
 from BedReader import BedReader
+logging.basicConfig(format='%(asctime)s %(name)s: %(message)s', datefmt='%I:%M:%S', level=logging.INFO)
 
 
 #This function merge bin gaps in big gaps.

@@ -3,12 +3,8 @@ import sys
 
 source_path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/basenji/source"
 source_path2 = os.path.dirname(os.path.abspath(sys.argv[0])) + "/basenji/basenji"
-source_path3 = os.path.dirname(os.path.abspath(sys.argv[0])) + "/3Dpredictor/source"
-source_path4 = os.path.dirname(os.path.abspath(sys.argv[0])) + "/source"
 sys.path.append(source_path)
 sys.path.append(source_path2)
-sys.path.append(source_path3)
-sys.path.append(source_path4)
 import json
 import subprocess
 os.environ["CUDA_VISIBLE_DEVICES"] = '-1' ### run on CPU
@@ -23,13 +19,28 @@ import pandas as pd
 import pysam
 import matplotlib.pyplot as plt
 from cooltools.lib.numutils import set_diag
+
 import dataset, dna_io, seqnn
-from Predictions_interpeter import from_oe_to_contacts, from_upper_triu
-from shared import Interval
+
+# model_dir = './explore_best_model/'
+model_dir = '/mnt/scratch/ws/psbelokopytova/202105171236data_Polina/nn_anopheles/dataset_like_Akita/data/Aalb_test_1sample/train_out2/'
+params_file = model_dir+'params.json'
+# model_file  = model_dir+'model_check.h5'
+model_file  = model_dir+'model_best.h5'
+with open(params_file) as params_open:
+    params = json.load(params_open)
+    params_model = params['model']
+    params_train = params['train']
+
+seqnn_model = seqnn.SeqNN(params_model)
+
+### restore model ###
+seqnn_model.restore(model_file)
+print('successfully loaded')
 
 ### names of targets ###
-data_dir ='/mnt/scratch/ws/psbelokopytova/202103211631polina/nn_anopheles/dataset_like_Akita/data/Aalb_test_1sample'
-# data_dir ='/mnt/scratch/ws/psbelokopytova/202103211631polina/nn_anopheles/dataset_like_Akita/data/Aaalb_2048_new2'
+data_dir ='/mnt/scratch/ws/psbelokopytova/202105171236data_Polina/nn_anopheles/dataset_like_Akita/data/Aalb_test_1sample'
+# data_dir ='/mnt/scratch/ws/psbelokopytova/202105171236data_Polina/nn_anopheles/dataset_like_Akita/data/Aste_2048_globaloe'
 hic_targets = pd.read_csv(data_dir+'/targets.txt',sep='\t')
 hic_file_dict_num = dict(zip(hic_targets['index'].values, hic_targets['file'].values) )
 hic_file_dict     = dict(zip(hic_targets['identifier'].values, hic_targets['file'].values) )
@@ -47,7 +58,7 @@ target_length1 = data_stats['seq_length'] // data_stats['pool_width']
 
 ### load data ###
 sequences = pd.read_csv(data_dir+'/sequences.bed', sep='\t', names=['chr','start','stop','type'])
-sequences_test = sequences.iloc[sequences['type'].values=='train']
+sequences_test = sequences.iloc[sequences['type'].values=='test']
 sequences_test.reset_index(inplace=True, drop=True)
 print("going to load test dataset")
 test_data = dataset.SeqDataset(data_dir, 'train', batch_size=8)
@@ -62,17 +73,16 @@ test_data = dataset.SeqDataset(data_dir, 'train', batch_size=8)
 # [#regions, 2^20 bp, 4 nucleotides datasets]
 
 test_inputs, test_targets = test_data.numpy(return_inputs=True, return_outputs=True)
-print(test_inputs)
 # print(test_targets)
 
-# ### for converting from flattened upper-triangluar vector to symmetric matrix  ###
-# def from_upper_triu(vector_repr, matrix_len, num_diags):
-#     z = np.zeros((matrix_len,matrix_len))
-#     triu_tup = np.triu_indices(matrix_len,num_diags)
-#     z[triu_tup] = vector_repr
-#     for i in range(-num_diags+1,num_diags):
-#         set_diag(z, np.nan, i)
-#     return z + z.T
+### for converting from flattened upper-triangluar vector to symmetric matrix  ###
+def from_upper_triu(vector_repr, matrix_len, num_diags):
+    z = np.zeros((matrix_len,matrix_len))
+    triu_tup = np.triu_indices(matrix_len,num_diags)
+    z[triu_tup] = vector_repr
+    for i in range(-num_diags+1,num_diags):
+        set_diag(z, np.nan, i)
+    return z + z.T
 
 target_length1_cropped = target_length1 - 2*target_crop
 print('flattened representation length:', target_length)
@@ -110,33 +120,45 @@ for seq in fig2_examples:
                          (sequences_test['start'].values== int(start))*
                          (sequences_test['stop'].values==  int(stop ))  )[0][0]
     fig2_inds.append(test_ind)
-# print(fig2_inds)
+print(fig2_inds)
 
+### make predictions and plot the three examples above ###
+
+target_index = 0  #Aalb
+for test_index in fig2_inds:
+    chrm, seq_start, seq_end = sequences_test.iloc[test_index][0:3]
+    myseq_str = chrm + ':' + str(seq_start) + '-' + str(seq_end)
+    print(' ')
+    print(myseq_str)
+
+    test_target = test_targets[test_index:test_index + 1, :, :]
+    test_pred = seqnn_model.model.predict(test_inputs[test_index:test_index + 1, :, :])
+    print("inputs")
+    print(test_inputs[test_index:test_index + 1, :, :])
+
+    plt.figure(figsize=(8, 4))
     target_index = 0
-    for test_index in fig2_inds:
-        chrm, seq_start, seq_end = sequences_test.iloc[test_index][0:3]
-        myseq_str = chrm + ':' + str(seq_start) + '-' + str(seq_end)
-        print(' ')
-    #     print(myseq_str)
-        test_target = test_targets[test_index:test_index + 1, :, :]
-        # plot target
-        # plt.subplot(122)
-        mat = from_upper_triu(test_target[:, :, target_index], target_length1_cropped, hic_diags)
-        print(mat)
-        #draw matrix before returning from oe to contacts
-        im = plt.matshow(mat, fignum=False, cmap='RdBu_r')#, vmax=vmax, vmin=vmin)
-        plt.colorbar(im, fraction=.04, pad=0.05)#, ticks=[-2, -1, 0, 1, 2])
-        plt.title('target-' + str(hic_num_to_name_dict[target_index]+myseq_str), y=1.15)
-        plt.tight_layout()
-        plt.savefig(data_dir+"/test/test_before_"+str(chrm)+"_"+str(seq_start)+"_"+str(seq_end)+".png")
-        plt.clf()
-        #draw_after
-        returned_mat = from_oe_to_contacts(seq_hic_obsexp=mat, genome_hic_expected_file='/mnt/scratch/ws/psbelokopytova/202103211631polina/nn_anopheles/input/coolers/Aalb_2048.expected',
-                                           interval=Interval('2R', 32083968,33132544), seq_len_pool=target_length1_cropped)
-        im = plt.matshow(returned_mat, fignum=False, cmap='OrRd')  # , vmax=vmax, vmin=vmin)
-        plt.colorbar(im, fraction=.04, pad=0.05)  # , ticks=[-2, -1, 0, 1, 2])
-        plt.title('target-' + str(hic_num_to_name_dict[target_index] + myseq_str), y=1.15)
-        plt.tight_layout()
-        plt.savefig(data_dir + "/test/test_after_" + str(chrm) + "_" + str(seq_start) + "_" + str(
-            seq_end) + ".png")
-        plt.clf()
+    vmin = -2
+    vmax = 2
+
+    # plot pred
+    plt.subplot(121)
+    mat = from_upper_triu(test_pred[:, :, target_index], target_length1_cropped, hic_diags)
+    print(mat)
+    im = plt.matshow(mat, fignum=False, cmap='RdBu_r')#, vmax=vmax, vmin=vmin)
+    plt.colorbar(im, fraction=.04, pad=0.05)#, ticks=[-2, -1, 0, 1, 2])
+    plt.title('pred-' + str(hic_num_to_name_dict[target_index]+myseq_str), y=1.15)
+    plt.ylabel(myseq_str)
+
+    # plot target
+    plt.subplot(122)
+    mat = from_upper_triu(test_target[:, :, target_index], target_length1_cropped, hic_diags)
+    # print(mat)
+    # print(np.max(mat))
+    # print(np.min(mat))
+    im = plt.matshow(mat, fignum=False, cmap='RdBu_r')#, vmax=vmax, vmin=vmin)
+    plt.colorbar(im, fraction=.04, pad=0.05)#, ticks=[-2, -1, 0, 1, 2])
+    plt.title('target-' + str(hic_num_to_name_dict[target_index]+myseq_str), y=1.15)
+    plt.tight_layout()
+    plt.savefig(data_dir+"/prediction_"+str(chrm)+"_"+str(seq_start)+"_"+str(seq_end)+".aalbbest_model.png")
+    plt.clf()
