@@ -26,8 +26,8 @@ def merge_gaps(gaps, minimum_gap_between, min_gap_length, bed_file):
                     chr.append(gap[0])
                     start.append(current_start)
                     end.append(current_end)
-                current_start = gap[1]
-                current_end = gap[2]
+                current_start = int(gap[1])
+                current_end = int(gap[2])
     data = pd.DataFrame({"chr":chr, "start":start, "end":end})
     return data
 # This function generate gaps bed file. Gaps are generated if there are a lot of zeroes in matrix column.

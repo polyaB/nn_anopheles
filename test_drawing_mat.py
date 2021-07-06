@@ -28,8 +28,8 @@ from Predictions_interpeter import from_oe_to_contacts, from_upper_triu
 from shared import Interval
 
 ### names of targets ###
-data_dir ='/mnt/scratch/ws/psbelokopytova/202103211631polina/nn_anopheles/dataset_like_Akita/data/Aalb_test_1sample'
-# data_dir ='/mnt/scratch/ws/psbelokopytova/202103211631polina/nn_anopheles/dataset_like_Akita/data/Aaalb_2048_new2'
+# data_dir ='/mnt/scratch/ws/psbelokopytova/202103211631polina/nn_anopheles/dataset_like_Akita/data/Aalb_test_1sample'
+data_dir ='/mnt/scratch/ws/psbelokopytova/202105171236data_Polina/nn_anopheles/dataset_like_Akita/data/Atrop_man_gaps5'
 hic_targets = pd.read_csv(data_dir+'/targets.txt',sep='\t')
 hic_file_dict_num = dict(zip(hic_targets['index'].values, hic_targets['file'].values) )
 hic_file_dict     = dict(zip(hic_targets['identifier'].values, hic_targets['file'].values) )
@@ -80,7 +80,7 @@ print('symmetrix matrix size:', '('+str(target_length1_cropped)+','+str(target_l
 
 fig2_examples = [
                     #Aalb
-                    '2L:12992512-14041088',
+                    # '2L:12992512-14041088',
                     # '2L:24403968-25452544',
                     # '2L:12992512-14041088',
                     # '2R:40747008-41795584',
@@ -90,9 +90,19 @@ fig2_examples = [
                     # '3R:25563136-26611712',
                     # '3R:25595904-6644480',
                     # '3R:25628672-26677248',
-                    #Aste
-                    # '2R:32083968-33132544',
-                    # '2R:32116736-33165312',
+                    #Atrop
+                    # "2L:39407616-40456192",
+                    # "2L:37703680-38752256",
+                    # "2L:37998592-39047168",
+                    # "X:753664-1802240",
+                    # "2L:39735296-40783872",
+                    # "2L:39964672-41013248",
+"3R:33775616-34824192",
+"2L:30324736-31373312",
+"3R:40853504-41902080",
+"2R:16588800-17637376",
+"2L:15833088-16881664",
+"3R:43474944-44523520",
 
                     ]
                     # 'chr11:75429888-76478464',
@@ -128,15 +138,15 @@ for seq in fig2_examples:
         plt.colorbar(im, fraction=.04, pad=0.05)#, ticks=[-2, -1, 0, 1, 2])
         plt.title('target-' + str(hic_num_to_name_dict[target_index]+myseq_str), y=1.15)
         plt.tight_layout()
-        plt.savefig(data_dir+"/test/test_before_"+str(chrm)+"_"+str(seq_start)+"_"+str(seq_end)+".png")
+        plt.savefig(data_dir+"/test_before_"+str(chrm)+"_"+str(seq_start)+"_"+str(seq_end)+".png")
         plt.clf()
         #draw_after
-        returned_mat = from_oe_to_contacts(seq_hic_obsexp=mat, genome_hic_expected_file='/mnt/scratch/ws/psbelokopytova/202103211631polina/nn_anopheles/input/coolers/Aalb_2048.expected',
+        returned_mat = from_oe_to_contacts(seq_hic_obsexp=mat, genome_hic_expected_file='/mnt/scratch/ws/psbelokopytova/202105171236data_Polina/nn_anopheles/input/coolers/Aatr_2048.expected',
                                            interval=Interval('2R', 32083968,33132544), seq_len_pool=target_length1_cropped)
         im = plt.matshow(returned_mat, fignum=False, cmap='OrRd')  # , vmax=vmax, vmin=vmin)
         plt.colorbar(im, fraction=.04, pad=0.05)  # , ticks=[-2, -1, 0, 1, 2])
         plt.title('target-' + str(hic_num_to_name_dict[target_index] + myseq_str), y=1.15)
         plt.tight_layout()
-        plt.savefig(data_dir + "/test/test_after_" + str(chrm) + "_" + str(seq_start) + "_" + str(
+        plt.savefig(data_dir + "/test_after_" + str(chrm) + "_" + str(seq_start) + "_" + str(
             seq_end) + ".png")
         plt.clf()
