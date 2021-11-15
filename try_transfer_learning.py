@@ -38,7 +38,7 @@ with open(transfer_dir +"model_summary2", "w") as f:
 #     units=units,
 #     use_bias=True,
 #     activation=activation,
-#     kernel_initializer=initializers.he_normal(seed=randint(0, 100000)),
+#     kernel_initializer=c),
 #     kernel_regularizer=tf.keras.regularizers.l1_l2(l1_scale, l2_scale)
 # )(inputs)
 my_layer = keras.layers.Dense(units = 1,activation='linear', kernel_initializer=keras.initializers.he_normal(seed=randint(0, 100000)),kernel_regularizer=keras.regularizers.l1_l2(0, 0))(model2.output)

@@ -29,11 +29,14 @@ from shared import Interval
 
 ### names of targets ###
 # data_dir ='/mnt/scratch/ws/psbelokopytova/202103211631polina/nn_anopheles/dataset_like_Akita/data/Aalb_test_1sample'
-data_dir ='/mnt/scratch/ws/psbelokopytova/202105171236data_Polina/nn_anopheles/dataset_like_Akita/data/Atrop_man_gaps5'
+# data_dir ='/mnt/scratch/ws/psbelokopytova/202109061534Polya/nn_anopheles/dataset_like_Akita/data/Atrop_man_gaps5'
+data_dir ='/mnt/scratch/ws/psbelokopytova/202109061534Polya/nn_anopheles/dataset_like_Akita/data/Atrop_moresamples/'
+pic_dir = '/mnt/scratch/ws/psbelokopytova/202109061534Polya/nn_anopheles/dataset_like_Akita/data/Atrop_moresamples/pictures/'
 hic_targets = pd.read_csv(data_dir+'/targets.txt',sep='\t')
 hic_file_dict_num = dict(zip(hic_targets['index'].values, hic_targets['file'].values) )
 hic_file_dict     = dict(zip(hic_targets['identifier'].values, hic_targets['file'].values) )
 hic_num_to_name_dict = dict(zip(hic_targets['index'].values, hic_targets['identifier'].values) )
+print(hic_num_to_name_dict)
 
 # read data parameters
 data_stats_file = '%s/statistics.json' % data_dir
@@ -47,10 +50,10 @@ target_length1 = data_stats['seq_length'] // data_stats['pool_width']
 
 ### load data ###
 sequences = pd.read_csv(data_dir+'/sequences.bed', sep='\t', names=['chr','start','stop','type'])
-sequences_test = sequences.iloc[sequences['type'].values=='train']
+sequences_test = sequences.iloc[sequences['type'].values=='valid']
 sequences_test.reset_index(inplace=True, drop=True)
 print("going to load test dataset")
-test_data = dataset.SeqDataset(data_dir, 'train', batch_size=8)
+test_data = dataset.SeqDataset(data_dir, 'valid', batch_size=8)
 
 # test_targets is a float array with shape
 # [#regions, #pixels, target #target datasets]
@@ -97,20 +100,69 @@ fig2_examples = [
                     # "X:753664-1802240",
                     # "2L:39735296-40783872",
                     # "2L:39964672-41013248",
-"3R:33775616-34824192",
-"2L:30324736-31373312",
-"3R:40853504-41902080",
-"2R:16588800-17637376",
-"2L:15833088-16881664",
-"3R:43474944-44523520",
-
+    #small region
+                    # "2L:38031360-38555648",
+                    # "2R:21700608-22224896",
+                    # "2R:26419200-26943488",
+                    # "2R:39421952-39946240",
+                    # "3R:54353920-54878208"
+                    "3R:59293696-59817984",
+                    "3R:57868288-58392576"
+                    #merge all
+                    # "Amer_3R:44619776-45668352",
+                    # "Aatr_3R:25380864-26429440",
+                    # "Amer_2L:30466048-31514624",
+                    # "Acol_3R:14903296-15951872",
+                    # "Aatr_3R:27379712-28428288",
+                    # "Acol_2R:33259520-34308096",
+                    # "Aatr_3R:50499584-51548160",
+                    # "Aatr_3R:25544704-26593280",
+                    # "Acol_3R:21915648-22964224",
+                    # "ASteph_2L:31787008-32835584",
+                    # "Aatr_X:17547264-18595840",
+                    # "Acol_X:2850816-3899392",
+                    #Dros
+                    #valid
+                    # "chrX:4931584-5980160",
+                    # "chrX:5357568-6406144",
+                    # "chrX:5193728-6242304",
+                    # "chrX:5586944-6635520",
+                    # "chr4:163840-1212416",
+                    # "chrX:4898816-5947392",
+                    # "chrX:5128192-6176768",
+                    # "chrX:5652480-6701056",
+                    # "chrX:5095424-6144000",
+                    # "chrX:5750784-6799360",
+                    # "chrX:5718016-6766592",
+                    # "chrX:5488640-6537216",
+                    # "chr4:229376-1277952"
+                    #train
+                    # "chrX:8921088-9969664",
+                    # "chr2L:9437184-10485760",
+                    # "chr2L:16252928-17301504",
+                    # "chrX:20905984-21954560",
+                    # "chr3L:21016576-22065152",
+                    # "chr3R:786432-1835008",
+                    # "chr3R:9961472-11010048",
+                    # "chrX:20643840-21692416",
+                    # "chr3R:8388608-9437184",
+                    # "chr3L:2142208-3190784",
+                    # "chr3R:524288-1572864",
+                    # "chrX:7086080-8134656",
+                    # "chr3R:19136512-20185088",
+                    # "chr3R:16252928-17301504",
+                    # "chr2L:2621440-3670016",
+                    # "chr3R:6291456-7340032",
+                    # "chr3L:20754432-21803008",
+                    # "chr3R:7864320-8912896",
+                    # "chr2R:11796480-12845056"
                     ]
                     # 'chr11:75429888-76478464',
                     # 'chr15:63281152-64329728'
 
 fig2_inds = []
 for seq in fig2_examples:
-    print(seq)
+    # print(seq)
     # print(np.unique(sequences_test['chr'].values))
     chrm,start,stop = seq.split(':')[0], seq.split(':')[1].split('-')[0], seq.split(':')[1].split('-')[1]
     # print(np.where(sequences_test['chr'].values== chrm))
@@ -126,27 +178,29 @@ for seq in fig2_examples:
     for test_index in fig2_inds:
         chrm, seq_start, seq_end = sequences_test.iloc[test_index][0:3]
         myseq_str = chrm + ':' + str(seq_start) + '-' + str(seq_end)
-        print(' ')
+        print(myseq_str)
     #     print(myseq_str)
         test_target = test_targets[test_index:test_index + 1, :, :]
+        # print("mean", np.mean(mat), "max", np.max(mat), "min", np.min(mat))
         # plot target
         # plt.subplot(122)
         mat = from_upper_triu(test_target[:, :, target_index], target_length1_cropped, hic_diags)
-        print(mat)
+        # print(mat)
+        # print("mean",np.mean(mat), "max", np.max(mat), "min", np.min(mat))
         #draw matrix before returning from oe to contacts
         im = plt.matshow(mat, fignum=False, cmap='RdBu_r')#, vmax=vmax, vmin=vmin)
         plt.colorbar(im, fraction=.04, pad=0.05)#, ticks=[-2, -1, 0, 1, 2])
         plt.title('target-' + str(hic_num_to_name_dict[target_index]+myseq_str), y=1.15)
         plt.tight_layout()
-        plt.savefig(data_dir+"/test_before_"+str(chrm)+"_"+str(seq_start)+"_"+str(seq_end)+".png")
+        plt.savefig(pic_dir+"/atrop_"+str(chrm)+"_"+str(seq_start)+"_"+str(seq_end)+".png")
         plt.clf()
         #draw_after
-        returned_mat = from_oe_to_contacts(seq_hic_obsexp=mat, genome_hic_expected_file='/mnt/scratch/ws/psbelokopytova/202105171236data_Polina/nn_anopheles/input/coolers/Aatr_2048.expected',
-                                           interval=Interval('2R', 32083968,33132544), seq_len_pool=target_length1_cropped)
-        im = plt.matshow(returned_mat, fignum=False, cmap='OrRd')  # , vmax=vmax, vmin=vmin)
-        plt.colorbar(im, fraction=.04, pad=0.05)  # , ticks=[-2, -1, 0, 1, 2])
-        plt.title('target-' + str(hic_num_to_name_dict[target_index] + myseq_str), y=1.15)
-        plt.tight_layout()
-        plt.savefig(data_dir + "/test_after_" + str(chrm) + "_" + str(seq_start) + "_" + str(
-            seq_end) + ".png")
+        # returned_mat = from_oe_to_contacts(seq_hic_obsexp=mat, genome_hic_expected_file='/mnt/scratch/ws/psbelokopytova/202109061534Polya/nn_anopheles/input/coolers/Aatr_2048.expected',
+        #                                    interval=Interval('2R', 32083968,33132544), seq_len_pool=target_length1_cropped)
+        # im = plt.matshow(returned_mat, fignum=False, cmap='OrRd')  # , vmax=vmax, vmin=vmin)
+        # plt.colorbar(im, fraction=.04, pad=0.05)  # , ticks=[-2, -1, 0, 1, 2])
+        # plt.title('target-' + str(hic_num_to_name_dict[target_index] + myseq_str), y=1.15)
+        # plt.tight_layout()
+        # plt.savefig(data_dir + "/test_after_" + str(chrm) + "_" + str(seq_start) + "_" + str(
+        #     seq_end) + ".png")
         plt.clf()
