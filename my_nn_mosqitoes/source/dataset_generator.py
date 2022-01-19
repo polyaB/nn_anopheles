@@ -17,7 +17,8 @@ class DatasetGen(tf.keras.utils.Sequence):
                  mode : str,
                  batch_size: int, 
                  batches_per_epoch: Union[int, None] = None,
-                 draw_target=False):
+                 draw_target=False,
+                 fix_samples=False):
         
         with open(data_stats_file) as data_stats_open:
             data_stats = json.load(data_stats_open)
@@ -34,7 +35,9 @@ class DatasetGen(tf.keras.utils.Sequence):
         self.apply_augmentation = apply_augmentation
         self.draw_target = draw_target
         self.combinations = generate_pair_index_table(seq_data, mode)
-        random.shuffle(self.combinations)
+        self.fix_samples=fix_samples
+        if not fix_samples:
+            random.shuffle(self.combinations)
         self.n_samples = len(self.combinations)
         self.epoch_number = 0
         self.count = 0
@@ -78,7 +81,10 @@ class DatasetGen(tf.keras.utils.Sequence):
                     batch_target[sample_idx] = batch_target[sample_idx - 1]
         else:
             for sample_idx in range(self.batch_size):
-                left_key, right_key = random.choice(self.combinations)
+                if not self.fix_samples:
+                    left_key, right_key = random.choice(self.combinations)
+                else:
+                    left_key, right_key = self.combinations[sample_idx+80]
                 if self.apply_augmentation:
                    raise NotImplementedError
                 else:
@@ -89,10 +95,10 @@ class DatasetGen(tf.keras.utils.Sequence):
                     batch_target[sample_idx] = left_target-right_target
                 if self.draw_target:
                     left_mat = from_upper_triu(left_target, self.target_length1_cropped, self.diagonal_offset)
-                    print(left_mat)
+                    # print(left_mat)
                     right_mat = from_upper_triu(right_target, self.target_length1_cropped, self.diagonal_offset)
-                    print(right_mat)
-                    mat = from_upper_triu(left_target-right_target, self.target_length1_cropped, self.diagonal_offset)
+                    # print(right_mat)
+                    mats = from_upper_triu(left_target-right_target, self.target_length1_cropped, self.diagonal_offset)
                     #plot left target
                     plt.subplot(131)
                     im = plt.matshow(left_mat, fignum=False, cmap='RdBu_r')  # , vmax=vmax, vmin=vmin)
@@ -107,23 +113,16 @@ class DatasetGen(tf.keras.utils.Sequence):
                     im = plt.matshow(mat, fignum=False, cmap='RdBu_r')  # , vmax=vmax, vmin=vmin)
                     plt.colorbar(im, fraction=.04, pad=0.05)  # , ticks=[-2, -1, 0, 1, 2])
                     plt.title('left-right_mat')
-                    # plt.suptitle("epoch " + str(i))
-                    plt.savefig("/mnt/scratch/ws/psbelokopytova/202112281307data_Polya/nn_anopheles/dataset_like_Akita/data/test_new/"+str(sample_idx)+".png")
+                    plt.savefig("/mnt/scratch/ws/psbelokopytova/202112281307data_Polya/nn_anopheles/dataset_like_Akita/data/test_new/2_fix_samples_item"
+                                +str(idx)+"_sample"+str(sample_idx)+".png")
                     plt.clf()
         batch_input = [batch_input_left, batch_input_right]
         del batch_input_left, batch_input_right
         return batch_input, batch_target, None
-            # if per_epoch:
-            #     self.count += 1
-            #     if self.count > self.N_epoch:
-            #         self.count = 0
-            #         self.epoch_number += 1
-            #         if self.epoch_number >= max_number_epoches:
-            #             self.epoch_number = 0
-            #             # shuffle????
-            #     idx = idx + self.epoch_number
+
     def on_epoch_end(self):
         """Method called at the end of every epoch.
         """
-        random.shuffle(combinations)
+        if not self.fix_samples:
+            random.shuffle(combinations)
 

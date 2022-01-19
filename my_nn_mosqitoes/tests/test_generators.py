@@ -1,3 +1,7 @@
+import os
+import sys
+source_path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../source/"
+sys.path.append(source_path)
 from dataset_generator import DatasetGen
 import pandas as pd
 
@@ -11,14 +15,16 @@ datagen_for_training = DatasetGen(
     apply_augmentation=False,
     seq_data=seq_bed_data,
     mode="train",
-    batch_size=10,
+    batch_size=2,
     batches_per_epoch=6,
-    draw_target=True
+    draw_target=True,
+    fix_samples=True,
 )
 print("n_samples", datagen_for_training.n_samples)
 print("batches per epoch", datagen_for_training.batches_per_epoch)
 datagen_for_training.__len__()
 print("get item")
-batch_input, batch_target, something = datagen_for_training.__getitem__(3)
-print(batch_target)
-print(batch_target.shape)
+for i in range(3,7):
+    batch_input, batch_target, something = datagen_for_training.__getitem__(i)
+# print(batch_target)
+    print(batch_target.shape)

@@ -4,7 +4,7 @@ import pysam
 import numpy as np
 import sys
 import os
-source_path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../"
+source_path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../../"
 sys.path.append(source_path)
 from basenji.basenji.dna_io import dna_1hot
 from basenji.bin.basenji_data import ModelSeq

@@ -28,7 +28,7 @@ import pysam
 import numpy as np
 import sys
 import os
-source_path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../"
+source_path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/../../"
 sys.path.append(source_path)
 from basenji.basenji.dna_io import dna_1hot
 from basenji.bin.basenji_data import ModelSeq
@@ -122,7 +122,7 @@ def main():
     # initialize sequences coverage file
     # seqs_hic_open = h5py.File(seqs_hic_file, 'w')
     # seqs_hic_open.create_dataset('targets_3', shape=(num_seqs, seq_len_hic), dtype='float16')
-    targets_mem_map = np.memmap(seqs_npmemmap_file, dtype='float16', mode='w+',
+    targets_mem_map = np.memmap(i, dtype='float16', mode='w+',
                                 shape=(num_seqs, seq_len_hic))
 
     if options.kernel_stddev > 0:
